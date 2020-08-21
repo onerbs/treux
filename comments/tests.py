@@ -17,12 +17,8 @@ class TestCommentPeek(TestCase):
 
 class TestCommentEncoder(TestCase):
 	def setUp(self) -> None:
-		text_1 = 'Hello World'
-		text_2 = 'Lorem Ipsum'
 		timestamp = datetime.now().timestamp()
-		self.tuple_1 = (text_1, timestamp)
-		self.tuple_2 = (text_2, timestamp)
+		self.comment = ('Lorem Ipsum', timestamp)
 
 	def test_encoder(self):
-		self.assertEqual(self.tuple_1, decode(encode(*self.tuple_1)))
-		self.assertEqual(self.tuple_2, decode(encode(*self.tuple_2)))
+		self.assertEqual(self.comment, decode(encode(*self.comment)))

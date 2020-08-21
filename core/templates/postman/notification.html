@@ -1,0 +1,24 @@
+{% extends "postman/base.html" %}
+{% block content %}
+	<p style="font-size:1.33em">
+		We have noticed that the deadline for completing
+		<code>{{ task }}</code> in <b>{{ board }}</b>
+		is within a week.
+	</p>
+	<a style="color:{{ link_color }};font-size:1.4em;text-decoration:none"
+		href="{{ urls.project }}" target="_blank">
+		Go to the project
+	</a>
+	<hr>
+	<small>
+		This is a notification email about important service
+		information regarding your active projects at Treux.<br>
+		If you don't want to receive this kind of messages
+		anymore, you can
+		<a style="color:{{ link_color }};text-decoration:none"
+			href="{{ url }}" target="_blank">
+			update your preferences
+		</a>
+		at any time.
+	</small>
+{% endblock %}

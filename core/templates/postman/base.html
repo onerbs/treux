@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>[TreuxLab] {{ subject }}</title>
+</head>
+<body style="text-align:center;font-family:Arial,Helvetica,sans-serif;">
+	<h1>Treux<span style="font-weight:normal">Lab</span></h1>
+	<h2>{{ headline }}</h2>
+	<div>{% block content %}{% endblock %}</div>
+	<p>*</p>
+	<footer>
+		Treux Co. <small>\</small>
+		Rural 808-B <small>\</small>
+		68852, MX.<br>
+		<a href="tel:{{ phone_number }}">{{ phone_number }}</a>
+	</footer>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{% extends "postman/base.html" %}
+{% block content %}
+	<p>Confirm your email address by clicking the link below:</p>
+	<a style="color:{{ link_color }};font-size:2em;text-decoration:none"
+		href="{{ url }}" target="_blank">Confirm email
+	</a>
+	<br>
+	<br>
+	<small>
+		or copy and paste the following url into your browser:
+		<br>{{ url }}
+	</small>
+
+	<p style="font-size:1.33em">
+		We're happy to have you on board<i>!</i><br>
+		<small>
+			Please let us know if we can answer any questions.
+		</small>
+	</p>
+	<hr>
+	<small>
+		If you did not sign up for an account with us,<br>
+		you can safely disregard this email.
+	</small>
+{% endblock %}

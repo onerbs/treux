@@ -1,6 +1,8 @@
 from base import serializer
 from teams.models import Team
 
-TeamSerializer = serializer(Team, [
-	'name', 'description', 'owners', 'members'
-])
+
+class TeamSerializer(serializer(Team, [
+	'name', 'description', 'owner', 'members'
+])):
+	pass

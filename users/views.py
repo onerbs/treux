@@ -2,9 +2,9 @@ from django.contrib.auth import get_user_model
 
 from base import viewset
 from core.generics import create_resource
+from core.postman import send_confirmation_email
 from users.models import User
 from users.serializers import UserSerializer
-from users.tasks import send_confirmation_email
 
 
 class UserViewSet(viewset(User, UserSerializer)):

@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model, authenticate, login, logout
 from django.urls import path
 from rest_framework.decorators import api_view
 
-from core import success, resource_not_found
+from core import success, not_found
 from core.postman import send_reset_pass_email
 
 
@@ -15,7 +15,7 @@ def default_login(request):
 			password=request.data['password'],
 		)
 		if user is None:
-			return resource_not_found('User')
+			return not_found('User')
 		login(request, user)
 	return success('You\'ve logged in.')
 
@@ -33,14 +33,14 @@ def reset_pass(request):
 		if user := user_model.objects.get(email=email):
 			if send_reset_pass_email(user) > 0:
 				return success('Email sent.')
-		return resource_not_found('User')
+		return not_found('User')
 	#
 	uuid = request.data.get('uuid')
 	password = request.data.get('password')
 	confirmation = request.data.get('confirmation')
 	if password and confirmation and password == confirmation:
 		if not (user := user_model.objects.get(uuid=uuid)):
-			return resource_not_found('User')
+			return not_found('User')
 		user.set_password(password)
 		return success('The password has changed.')
 

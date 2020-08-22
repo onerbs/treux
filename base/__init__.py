@@ -3,17 +3,24 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework.viewsets import ModelViewSet
 
 
-def serializer(_model):
+def serializer(_model, _post_fields: list = None):
 	"""
 	Create a serializer for the specified model.
 
 	:param _model: The model to be serialized.
+	:param _post_fields: The fields for the POST method.
 	"""
 	class BaseSerializer(ModelSerializer):
 		class Meta:
 			model = _model
 			fields = _model.exports
 			ref_name = _model.__name__
+
+		class POST(ModelSerializer):
+			class Meta:
+				model = _model
+				fields = _post_fields
+				ref_name = _model.__name__
 
 	return BaseSerializer
 

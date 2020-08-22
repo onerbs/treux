@@ -2,9 +2,9 @@ from celery import Celery
 
 
 def load_environment():
-	from core import environ
+	from core import dotenv
 	from os import getenv
-	environ.source(getenv('ENV'))
+	dotenv.source(getenv('ENV'))
 
 	from os import environ
 	environ['DJANGO_SETTINGS_MODULE'] = 'treux.settings'

@@ -11,7 +11,7 @@ def default_login(request):
 	if not request.user.is_authenticated:
 		user = authenticate(
 			request,
-			username=request.data['username'],
+			identifier=request.data['identifier'],
 			password=request.data['password'],
 		)
 		if user is None:

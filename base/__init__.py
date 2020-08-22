@@ -18,20 +18,25 @@ def serializer(_model):
 	return BaseSerializer
 
 
-def viewset(m, s, p=None):
+def viewset(_model, _serializer, _permissions=None):
 	"""
 	Create a set of views for the specified model.
 
-	:param m: The model.
-	:param s: The model serializer.
-	:param p: The list of permission classes.
+	:param _model: The model.
+	:param _serializer: The model serializer.
+	:param _permissions: The list of permission classes.
 	"""
-	if p is None:
-		p = [IsAuthenticated]
+	if _permissions is None:
+		_permissions = [IsAuthenticated]
 
 	class BaseViewSet(ModelViewSet):
-		queryset = m.objects.filter(deleted_at=None)
-		serializer_class = s
-		permission_classes = p
+		queryset = _model.objects.filter(deleted_at=None)
+		serializer_class = _serializer
+		permission_classes = _permissions
+
+		def get_serializer_class(self):
+			if self.request.method == 'POST':
+				return _serializer.POST
+			return _serializer
 
 	return BaseViewSet

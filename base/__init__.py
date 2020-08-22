@@ -14,6 +14,7 @@ def serializer(m, f: list):
 		class Meta:
 			model = m
 			fields = f + ['uuid', 'created_at', 'updated_at', 'deleted_at']
+			ref_name = 'A'
 
 	return BaseSerializer
 

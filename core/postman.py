@@ -10,31 +10,38 @@ fake = Faker()
 
 def send_confirmation_email(user):
 	subject = 'Please, confirm your postman'
-	url = f'{SITE_URL}/confirm/?u={user.uuid}'
-	html = _render_template('confirmation', {
-		'headline': 'Welcome,' + user.get_short_name(),
-		'subject': subject,
-		'url': url,
-	})
+	html = _render_template(
+		subject, 'confirm', user.uuid,
+		'confirmation', {
+			'headline': 'Welcome,' + user.get_short_name(),
+		}
+	)
 	if _send_email(subject, user.email, html) > 0:
 		user.mail_sent = True
 		user.save()
 
 
-def send_reset_pass_email(user):
+def send_reset_pass_email(user) -> int:
 	subject = 'Reset your password'
-	url = f'{SITE_URL}/reset/?u={user.uuid}'
-	html = _render_template('reset_pass', {
-		'headline': 'Hi,' + user.get_short_name(),
+	html = _render_template(
+		subject, 'reset', user.uuid,
+		'reset_pass', {
+			'headline': 'Hi,' + user.get_short_name(),
+		}
+	)
+	return _send_email(subject, user.email, html)
+
+
+def _render_template(
+		subject: str, action: str, uuid: str,
+		template: str, context: dict = None) -> str:
+	context = {
+		**context,
+		'link_color': fake.color(),  # '#d23049',
+		'phone_number': fake.phone_number(),
 		'subject': subject,
-		'url': url,
-	})
-	_send_email(subject, user.email, html)
-
-
-def _render_template(template: str, context: dict = None) -> str:
-	context['link_color'] = fake.color()  # '#d23049'
-	context['phone_number'] = fake.phone_number()
+		'url': f'{SITE_URL}/{action}/?u={uuid}',
+	}
 	return str(get_template(f'postman/{template}.html').render(context))
 
 

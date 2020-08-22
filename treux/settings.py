@@ -15,7 +15,7 @@ def base(*args):
 BASE_DIR = str(__root__)
 SECRET_KEY = getenv('SECRET_KEY')
 
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = ['*']
 AUTH_USER_MODEL = 'users.User'
 
@@ -146,3 +146,4 @@ USE_TZ = True
 WSGI_APPLICATION = 'treux.wsgi.application'
 ROOT_URLCONF = 'treux.urls'
 STATIC_URL = '/x/'
+STATIC_ROOT = None if DEBUG else base('_static', '')

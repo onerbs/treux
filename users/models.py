@@ -2,12 +2,12 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from identy import random as avatar
 
-from base.models import BaseModel
+from base.models import BaseModel, extends
 from users.validators import UsernameValidator
 
 
 class User(AbstractUser, BaseModel):
-	first_name = models.CharField(max_length=30)
+	first_name = models.CharField(max_length=50)
 	username = models.CharField(max_length=32, unique=True, error_messages={
 		'unique': 'A user with that username already exists.',
 	}, validators=[UsernameValidator()])
@@ -16,6 +16,11 @@ class User(AbstractUser, BaseModel):
 	})
 	avatar = models.TextField(default=avatar().png(64).base64str())
 	is_confirmed = models.BooleanField(default=False)
+	exports = extends(
+		BaseModel, 'first_name', 'last_name', 'username', 'email', 'avatar',
+		'is_confirmed', 'owned_teams', 'member_of', 'owned_boards',
+		'favorite_boards', 'assigned_cards', 'authored_comments'
+	)
 
 	REQUIRED_FIELDS = ['email', 'password']
 

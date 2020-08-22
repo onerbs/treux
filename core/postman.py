@@ -5,40 +5,34 @@ from faker import Faker
 
 from treux.settings import SITE_URL
 
-fake = Faker()
-
 
 def send_confirmation_email(user):
-	subject = 'Please, confirm your postman'
+	subject = 'Please, confirm your email'
 	html = _render_template(
-		subject, 'confirm', user.uuid,
-		'confirmation', {
-			'headline': 'Welcome,' + user.get_short_name(),
+		subject, user.uuid, 'confirm%ation', {
+			'headline': 'Welcome, ' + user.get_short_name(),
 		}
 	)
-	if _send_email(subject, user.email, html) > 0:
-		user.mail_sent = True
-		user.save()
+	return _send_email(subject, user.email, html)
 
 
 def send_reset_pass_email(user) -> int:
 	subject = 'Reset your password'
 	html = _render_template(
-		subject, 'reset', user.uuid,
-		'reset_pass', {
-			'headline': 'Hi,' + user.get_short_name(),
+		subject, user.uuid, 'reset%_pass', {
+			'headline': 'Hi, ' + user.get_short_name(),
 		}
 	)
 	return _send_email(subject, user.email, html)
 
 
 def _render_template(
-		subject: str, action: str, uuid: str,
-		template: str, context: dict = None) -> str:
+		subject: str, uuid: str, res: str, context: dict = None) -> str:
+	action, template = res.split('%')[0], res.replace('%', '')
 	context = {
 		**context,
-		'link_color': fake.color(),  # '#d23049',
-		'phone_number': fake.phone_number(),
+		'link_color': '#d23049',
+		'phone_number': Faker(['jp_JP']).phone_number(),
 		'subject': subject,
 		'url': f'{SITE_URL}/{action}/?u={uuid}',
 	}

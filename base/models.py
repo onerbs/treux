@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import uuid4
 
 from django.db import models
@@ -13,6 +14,15 @@ class BaseModel(models.Model):
 	deleted_at = models.DateTimeField(null=True, default=None)
 	uuid = models.UUIDField(default=uuid4())
 	exports = ['created_at', 'updated_at', 'deleted_at', 'uuid']
+
+	def delete(self, using=None, keep_parents=False):
+		# todo: respect {keep_parents}.
+		self.deleted_at = datetime.now()
+		self.save(using=using)
+
+	def recover(self, using=None):
+		self.deleted_at = None
+		self.save(using=using)
 
 	def rotate_uuid(self):
 		self.uuid = uuid4()

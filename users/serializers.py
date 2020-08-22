@@ -7,9 +7,6 @@ class UserSerializer(serializer(User, [
 	'owned_teams', 'member_of', 'owned_boards', 'favorite_boards',
 	'assigned_cards', 'authored_comments'
 ])):
-	pass
-
-	class POST(serializer(User, [
+	POST = serializer(User, [
 		'first_name', 'last_name', 'email', 'password'
-	])):
-		pass
+	])

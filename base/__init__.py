@@ -3,18 +3,17 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework.viewsets import ModelViewSet
 
 
-def serializer(m, f: list):
+def serializer(_model):
 	"""
 	Create a serializer for the specified model.
 
-	:param m: The model to be serialized.
-	:param f: The list of fields to serialize.
+	:param _model: The model to be serialized.
 	"""
 	class BaseSerializer(ModelSerializer):
 		class Meta:
-			model = m
-			fields = f + ['uuid', 'created_at', 'updated_at', 'deleted_at']
-			ref_name = 'A'
+			model = _model
+			fields = _model.exports
+			ref_name = _model.__name__
 
 	return BaseSerializer
 

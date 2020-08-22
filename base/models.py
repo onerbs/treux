@@ -14,6 +14,9 @@ class BaseModel(models.Model):
 	uuid = models.UUIDField(default=uuid4())
 	exports = ['created_at', 'updated_at', 'deleted_at', 'uuid']
 
+	def rotate_uuid(self):
+		self.uuid = uuid4()
+
 	class Meta:
 		abstract = True
 

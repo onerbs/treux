@@ -1,14 +1,9 @@
+from rest_framework import mixins
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.serializers import ModelSerializer
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import GenericViewSet
 
-
-def _meta(_model, _fields):
-	class _Meta:
-		model = _model
-		fields = _fields
-		ref_name = _model.__name__
-	return _Meta
+from core.responses import *
 
 
 def serializer(_model, _post_fields: list, _put_fields: list = None):
@@ -26,16 +21,28 @@ def serializer(_model, _post_fields: list, _put_fields: list = None):
 				_put_fields.remove(field)
 				_put_fields.remove(field[1:])
 
-	class BaseSerializer(ModelSerializer):
-		Meta = _meta(_model, _model.exports)
+	_Serializer = _serializer(_model, _model.exports)
+	_Serializer.POST = _serializer(_model, _post_fields)
+	_Serializer.PUT = _serializer(_model, _put_fields)
 
-		class POST(ModelSerializer):
-			Meta = _meta(_model, _post_fields)
+	return _Serializer
 
-		class PUT(ModelSerializer):
-			Meta = _meta(_model, _put_fields)
 
-	return BaseSerializer
+def _meta(_model, _fields):
+	class _Meta:
+		model = _model
+		fields = _fields
+		ref_name = _model.__name__
+	return _Meta
+
+
+def _serializer(_model, _fields):
+	class _Serializer(ModelSerializer):
+		Meta = _meta(_model, _fields)
+	return _Serializer
+
+
+# ----------------------------------------------------------------------
 
 
 def viewset(_model, _serializer, _permissions=None):
@@ -49,20 +56,41 @@ def viewset(_model, _serializer, _permissions=None):
 	if _permissions is None:
 		_permissions = [IsAuthenticated]
 
-	class BaseViewSet(ModelViewSet):
+	class _ViewSet(
+		mixins.RetrieveModelMixin,
+		mixins.UpdateModelMixin,
+		mixins.ListModelMixin,
+		GenericViewSet,
+		WithResponses,
+	):
 		queryset = _model.objects.all()
 		serializer_class = _serializer
 		permission_classes = _permissions
 
+		@staticmethod
+		def kind() -> str:
+			return _model.__name__
+
+		def create(self):
+			return error(self.name + ' not created.', HTTP_501_NOT_IMPLEMENTED)
+
+		def destroy(self, request, *args, **kwargs):
+			item = self.get_object()
+			is_staff = request.user.is_staff
+			hard_delete = request.data.get('force', '') == 'true'
+			return item.delete(is_staff, hard_delete, *args, **kwargs)
+
 		def get_serializer_class(self):
 			if self.request.method == 'POST':
-				return _serializer.POST
+				return self.serializer_class.POST
 			if self.request.method == 'PUT':
-				return _serializer.PUT
-			return _serializer
+				return self.serializer_class.PUT
+			return self.serializer_class
 
-		def get_queryset(self):
-			queryset = super().get_queryset()
-			return queryset.filter(deleted_at=None)
+		def get_queryset(self, *args, **kwargs):
+			if self.request.user.is_staff:
+				return super().get_queryset()
+			else:
+				return self.queryset.filter(deleted_at=None)
 
-	return BaseViewSet
+	return _ViewSet

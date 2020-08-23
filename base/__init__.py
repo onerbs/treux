@@ -43,7 +43,7 @@ def viewset(_model, _serializer, _permissions=None):
 		_permissions = [IsAuthenticated]
 
 	class BaseViewSet(ModelViewSet):
-		queryset = _model.objects.filter(deleted_at=None)
+		queryset = _model.objects.all()
 		serializer_class = _serializer
 		permission_classes = _permissions
 
@@ -53,5 +53,9 @@ def viewset(_model, _serializer, _permissions=None):
 			if self.request.method == 'PUT':
 				return _serializer.PUT
 			return _serializer
+
+		def get_queryset(self):
+			queryset = super().get_queryset()
+			return queryset.filter(deleted_at=None)
 
 	return BaseViewSet

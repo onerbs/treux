@@ -2,7 +2,6 @@ from django.db import models
 
 from base.models import BaseModel, extends
 from cards.models import Card
-from comments import encoder, peek
 from users.models import User
 
 
@@ -13,11 +12,19 @@ class Comment(BaseModel):
 		User, models.DO_NOTHING, 'authored_comments', editable=False)
 	target = models.ForeignKey(
 		Card, models.CASCADE, 'comments', editable=False)
-	exports = extends(BaseModel, 'text', 'author', 'target')
-
-	def get_preview(self, max_length=20):
-		text, timestamp = encoder.decode_many(self.history)[-1]
-		return '"%s", %s' % (peek(text, max_length), timestamp)
+	exports = extends(BaseModel, 'text', 'author', 'history')
 
 	def __str__(self):
-		return self.text
+		return '"%s"' % _peek(self.text, 50)
+
+
+def _peek(text: str, length: int) -> str:
+	if len(text) < length:
+		return text
+	words = text.split(' ')
+	result = words.pop(0)
+	if len(result) > length:
+		result = result[:length]
+	while len(result) < length:
+		result += f' {words.pop(0)}'
+	return result + '...'

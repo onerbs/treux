@@ -1,17 +1,17 @@
 from base import viewset
-from core import created
+from core.decorators import check_fields
 from teams.models import Team
 from teams.serializers import TeamSerializer
 
 
 class TeamViewSet(viewset(Team, TeamSerializer)):
-	@staticmethod
-	def create(request, *args, **kwargs):
+	@check_fields(['name'], ['description'])
+	def create(self, request):
 		team = Team.objects.create(
-			name=request.data.get('name'),
-			description=request.data.get('description'),
+			name=request.name,
+			description=request.description,
 			owner=request.user,
 		)
 		team.members.add(request.user)
 		team.save()
-		return created('Team')
+		return self.created()

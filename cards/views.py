@@ -1,44 +1,30 @@
-from datetime import datetime
-
 from base import viewset
 from boards.models import Board
 from cards.models import List, Card
 from cards.serializers import ListSerializer, CardSerializer
-from core import error, created, not_found
+from core.decorators import check_fields, with_reference
 
 
 class ListViewSet(viewset(List, ListSerializer)):
-	@staticmethod
-	def create(request):
-		if not (uuid := request.data.get('uuid')):
-			return error()
-		try:
-			of_board = Board.objects.get(uuid=uuid)
-		except Board.DoesNotExist:
-			return not_found('Board')
+	@with_reference(Board)
+	@check_fields(['index', 'title'])
+	def create(self, request):
 		List.objects.create(
-			index=int(request.data.get('index')),
-			title=request.data.get('title'),
-			of_board=of_board,
+			index=request.index,
+			title=request.title,
+			of_board=request.board,
 		)
-		return created('List')
+		return self.created()
 
 
 class CardViewSet(viewset(Card, CardSerializer)):
-	@staticmethod
-	def create(request):
-		if not (uuid := request.data.get('uuid')):
-			return error()
-		try:
-			of_list = List.objects.get(uuid=uuid)
-		except List.DoesNotExist:
-			return not_found('List')
-		if expires_at := request.data.get('expires_at'):
-			expires_at = datetime.fromisoformat(expires_at.replace('Z', ''))
+	@with_reference(List)
+	@check_fields(['index', 'text'], ['expires_at'])
+	def create(self, request):
 		Card.objects.create(
-			index=int(request.data.get('index')),
-			text=request.data.get('text'),
-			expires_at=expires_at or None,
-			of_list=of_list
+			index=request.index,
+			text=request.text,
+			expires_at=request.expires_at,
+			of_list=request.list,
 		)
-		return created('Card')
+		return self.created()

@@ -1,16 +1,16 @@
 from base import viewset
 from boards.models import Board
 from boards.serializers import BoardSerializer
-from core import created
+from core.decorators import check_fields
 
 
 class BoardViewSet(viewset(Board, BoardSerializer)):
-	@staticmethod
-	def create(request):
+	@check_fields(['name'], ['description', 'is_public'])
+	def create(self, request):
 		Board.objects.create(
-			name=request.data.get('name'),
-			description=request.data.get('description'),
-			is_public=request.data.get('is_public') in ['on', 'true'],
+			name=request.name,
+			description=request.description,
+			is_public=request.is_public,
 			owner=request.user,
 		)
-		return created('Board')
+		return self.created()

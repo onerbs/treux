@@ -8,6 +8,6 @@ class EmailOrUsernameModelBackend(ModelBackend):
 			user_model = get_user_model()
 			try:
 				identifier = user_model.objects.get(email=identifier).username
-			except user_model.DoesNotExist:
-				pass
+			except user_model.DoesNotExist as ex:
+				raise ex
 		return super().authenticate(request, identifier, password, **kwargs)

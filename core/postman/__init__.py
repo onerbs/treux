@@ -1,9 +1,8 @@
-from django.core.mail import send_mail
 from django.template.loader import get_template
-from django.utils.html import strip_tags
 from faker import Faker
 
-from treux.settings import SITE_URL
+from core.postman.tasks import send_email
+from treux.api import api_url
 
 
 def send_confirmation_email(user):
@@ -13,17 +12,17 @@ def send_confirmation_email(user):
 			'headline': 'Welcome, ' + user.get_short_name(),
 		}
 	)
-	return _send_email(subject, user.email, html)
+	send_email.apply_async(args=[subject, user.email, html])
 
 
-def send_reset_pass_email(user) -> int:
+def send_reset_pass_email(user):
 	subject = 'Reset your password'
 	html = _render_template(
 		subject, user.uuid, 'reset%_pass', {
 			'headline': 'Hi, ' + user.get_short_name(),
 		}
 	)
-	return _send_email(subject, user.email, html)
+	send_email.apply_async(args=[subject, user.email, html])
 
 
 def _render_template(
@@ -34,11 +33,6 @@ def _render_template(
 		'link_color': '#d23049',
 		'phone_number': Faker(['jp_JP']).phone_number(),
 		'subject': subject,
-		'url': f'{SITE_URL}/{action}/?u={uuid}',
+		'url': api_url(f'{action}/?u={uuid}'),
 	}
 	return str(get_template(f'postman/{template}.html').render(context))
-
-
-def _send_email(subject: str, email: str, html: str) -> int:
-	return send_mail(
-		subject, strip_tags(html), None, [email], html_message=html)

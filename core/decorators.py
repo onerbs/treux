@@ -6,6 +6,26 @@ from rest_framework.request import Request
 from core.responses import error
 
 
+def with_reference(model, name: str = None):
+	"""Error if the provided uuid isn't related to an existing object."""
+	def bridge(function):
+		@functools.wraps(function)
+		def decorated(*args):
+			request = args[-1]
+			if not (uuid := request.data.get('uuid')):
+				return error(f'Broken {model.kind()} reference.')
+			setattr(
+				request,
+				name or model.kind().lower(),
+				model.objects.get(uuid=uuid)
+			)
+			return function(*args[:-1], request)
+
+		return decorated
+
+	return bridge
+
+
 def check_fields(required_fields: list, fields: list = None):
 	"""Error if missing required fields.
 	Also injects the named fields into request."""

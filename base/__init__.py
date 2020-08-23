@@ -3,6 +3,14 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework.viewsets import ModelViewSet
 
 
+def _meta(_model, _fields):
+	class _Meta:
+		model = _model
+		fields = _fields
+		ref_name = _model.__name__
+	return _Meta
+
+
 def serializer(_model, _post_fields: list = None):
 	"""
 	Create a serializer for the specified model.
@@ -11,16 +19,10 @@ def serializer(_model, _post_fields: list = None):
 	:param _post_fields: The fields for the POST method.
 	"""
 	class BaseSerializer(ModelSerializer):
-		class Meta:
-			model = _model
-			fields = _model.exports
-			ref_name = _model.__name__
+		Meta = _meta(_model, _model.exports)
 
 		class POST(ModelSerializer):
-			class Meta:
-				model = _model
-				fields = _post_fields
-				ref_name = _model.__name__
+			Meta = _meta(_model, _post_fields)
 
 	return BaseSerializer
 

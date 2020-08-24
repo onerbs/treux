@@ -1,0 +1,9 @@
+.idea
+.vscode
+_cache
+_static
+.env*
+venv
+env
+*.txt
+*.pyc

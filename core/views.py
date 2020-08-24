@@ -1,13 +1,13 @@
 from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view
 
-from core import error, success, not_found
+from core.responses import error, success
 
 
 @api_view(['GET'])
 def user_confirm(request):
 	if not (uuid := request.query_params.get('u')):
-		return not_found()
+		return error('Missing query_param u.')
 	user_model = get_user_model()
 	try:
 		user = user_model.objects.get(uuid=uuid)

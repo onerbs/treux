@@ -15,32 +15,32 @@ class BaseModel(models.Model, WithResponses):
 	updated_at = models.DateTimeField(auto_now=True)
 	deleted_at = models.DateTimeField(null=True, default=None)
 	uuid = models.UUIDField(default=uuid4())
-	exports = ['created_at', 'updated_at', 'deleted_at', 'uuid']
+	exports = ['created_at', 'updated_at', 'uuid']
 
 	def kind(self) -> str:
 		return self.__class__.__name__
 
-	def delete(self, is_staff=False, hard_delete=False, *args, **kwargs):
-		if hard_delete:
+	def delete(self, /, is_staff=False, force=False, **kwargs):
+		if force is True:
 			if not is_staff:
 				return staff_only()
-			super().delete(*args, **kwargs)
+			super().delete(**kwargs)
 			return self.deleted(hard=True)
 
 		if self.deleted_at is None:
 			self.deleted_at = datetime.now()
-			self.save(using=kwargs.get('using'))
+			self.save(**kwargs)
 			return self.deleted()
 		else:
 			self.deleted_at = None
-			self.save(using=kwargs.get('using'))
+			self.save(**kwargs)
 			return self.undeleted()
 
 	def undelete(self, is_staff=False, **kwargs):
 		if not is_staff:
 			return staff_only()
 		self.deleted_at = None
-		self.save(using=kwargs.get('using'))
+		self.save(**kwargs)
 		return self.undeleted()
 
 	def rotate_uuid(self):

@@ -3,6 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.serializers import ModelSerializer
 from rest_framework.viewsets import GenericViewSet
 
+from core.decorators import check_fields
 from core.responses import *
 
 
@@ -74,11 +75,12 @@ def viewset(_model, _serializer, _permissions=None):
 		def create(self):
 			return error(self.name + ' not created.', HTTP_501_NOT_IMPLEMENTED)
 
-		def destroy(self, request, *args, **kwargs):
+		@check_fields([], ['force'])
+		def destroy(self, request, **kwargs):
 			item = self.get_object()
 			is_staff = request.user.is_staff
-			hard_delete = request.data.get('force', '') == 'true'
-			return item.delete(is_staff, hard_delete, *args, **kwargs)
+			kwargs.pop('pk')
+			return item.delete(is_staff, force=request.force, **kwargs)
 
 		def get_serializer_class(self):
 			if self.request.method == 'POST':
@@ -87,7 +89,7 @@ def viewset(_model, _serializer, _permissions=None):
 				return self.serializer_class.PUT
 			return self.serializer_class
 
-		def get_queryset(self, *args, **kwargs):
+		def get_queryset(self):
 			if self.request.user.is_staff:
 				return super().get_queryset()
 			else:

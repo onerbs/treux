@@ -15,10 +15,10 @@ class Comment(BaseModel):
 	exports = extends(BaseModel, 'text', 'author', 'history')
 
 	def __str__(self):
-		return '"%s"' % _peek(self.text, 50)
+		return '"%s"' % peek(self.text, 50)
 
 
-def _peek(text: str, length: int) -> str:
+def peek(text: str, length: int) -> str:
 	if len(text) < length:
 		return text
 	words = text.split(' ')

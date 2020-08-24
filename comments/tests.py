@@ -1,7 +1,7 @@
 from datetime import datetime
 from unittest import TestCase
 
-from comments import peek
+from comments.models import peek
 from comments.encoder import encode, decode
 
 

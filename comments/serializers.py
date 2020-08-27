@@ -1,4 +1,9 @@
-from base import serializer
+from rest_framework.serializers import StringRelatedField
+
+from base.serializers import serializer
 from comments.models import Comment
 
-CommentSerializer = serializer(Comment, ['text', 'uuid'], ['!uuid'])
+
+class CommentSerializer(serializer(Comment, ['text', 'uuid:'])):
+	author = StringRelatedField()
+	target = StringRelatedField()

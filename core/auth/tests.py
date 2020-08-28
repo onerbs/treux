@@ -1,38 +1,103 @@
-from treux.api import TestCase, api_post, api_get
+from core.api.status import *
+from core.api.test_cases import WithShortcuts, WithUser
 from faker import Faker
-from xu import string
+fake = Faker(['es_MX'])
 
 
-class TestLoginLogout(TestCase):
-	def setUp(self) -> None:
-		fake = Faker('es_MX')
-		self.email = f'0x{string(6).digit.extend("abcdef")}@example.com'
-		self.password = string(16).alpha.next()
-		self.first_name = fake.first_name()
-		self.last_name = fake.last_name()
+class TestLoginLogout(WithShortcuts):
+	def test_best_case(self):
+		email = fake.email()
+		password = fake.md5()
+		response = self.register(
+			email=email,
+			password=password,
+			first_name=fake.first_name(),
+			last_name=fake.last_name(),
+		)
+		self.assertEqual(
+			response.status_code, CREATED, 'Should register a user')
 
-	def test_auth(self):
-		self.should_pass(api_post(self, 'users/', {
-			'email': self.email,
-			'password': self.password,
-			'first_name': self.first_name,
-			'last_name': self.last_name,
-		}), 201, 'Create user')
+		self.assertEqual(self.auth(
+			username=email,
+			password=password
+		).status_code, SUCCESS, 'Should log in with email')
 
-		self.should_pass(api_post(self, 'auth/login/', {
-			'identifier': self.email,
-			'password': self.password,
-		}), 200, 'Log in with email')
+		self.assertEqual(
+			self.logout().status_code, SUCCESS, 'Should log out')
 
-		self.should_pass(api_get(self, 'auth/logout/'), 200, 'Log out')
+		self.assertEqual(self.auth(
+			username=response.data.get('username'),
+			password=password
+		).status_code, SUCCESS, 'Should log in with username')
 
-	def test_bad_auth(self):
-		self.should_fail(api_post(self, 'users/', {
-			'email': self.email,
-			'password': self.password,
-		}), 400, 'Create user')
+		self.assertEqual(
+			self.logout().status_code, SUCCESS, 'Should log out again')
 
-		self.should_fail(api_post(self, 'auth/login/', {
-			'identifier': self.email,
-			'password': self.password[::-1],
-		}), 400, 'Log in with email')
+	def test_bad_password(self):
+		email = fake.email()
+		first_name = fake.first_name()
+		self.assertNotEqual(self.register(
+			email=email,
+			password='12345678',
+			first_name=first_name
+		).status_code, CREATED, 'Should fail by weak password 12341234')
+
+		self.assertNotEqual(self.register(
+			email=email,
+			password='qwerqwer',
+			first_name=first_name
+		).status_code, CREATED, 'Should fail by weak password qwerqwer')
+
+		self.assertNotEqual(self.register(
+			email=email,
+			password='qwer1234',
+			first_name=first_name
+		).status_code, CREATED, 'Should fail by weak password qwer1234')
+
+		self.assertNotEqual(self.register(
+			email=email,
+			password='1234',
+			first_name=first_name
+		).status_code, CREATED, 'Should fail by short password')
+
+	def test_worst_case(self):
+		self.assertNotEqual(self.register(
+			email=fake.email(),
+			password=fake.md5(),
+		).status_code, CREATED, 'Should not create an account without first name')
+
+		self.assertNotEqual(self.auth(
+			username=fake.email(),
+			password=fake.md5()
+		).status_code, SUCCESS, 'Should not log in with nonexistent credentials')
+
+		self.assertNotEqual(
+			self.logout().status_code,
+			SUCCESS, 'Should not log out without being logged in')
+
+
+class TestJWT(WithUser):
+	def test_jwt(self):
+		response = self.jwt_auth(
+			username=self.user.username,
+			password=self.password,
+		)
+		self.assertIsNotNone(
+			access := response.data.get('access'),
+			'Should have an access token.'
+		)
+		self.assertIsNotNone(
+			refresh := response.data.get('refresh'),
+			'Should have an access token.'
+		)
+		self.assertEqual(self.post('verify', {
+			'token': access
+		}).status_code, 200, 'Should verify the access token')
+
+		self.assertEqual(self.post('verify', {
+			'token': refresh
+		}).status_code, 200, 'Should verify the refresh token')
+
+		self.assertEqual(self.post('refresh', {
+			'refresh': refresh
+		}).status_code, 200, 'Should refresh the token')

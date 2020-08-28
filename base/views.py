@@ -28,7 +28,6 @@ class BaseViewSet(
 	WithResponses
 ):
 	lookup_field = 'uuid'
-	kind = 'Model'
 
 	def create(self, *args, **kwargs):
 		"""Not implemented."""

@@ -1,30 +1,31 @@
-from base import viewset
+from rest_framework.decorators import action
+
+from base.views import viewset
 from boards.models import Board
+from cards.actions import create_list, create_card
 from cards.models import List, Card
 from cards.serializers import ListSerializer, CardSerializer
-from core.decorators import check_fields, with_reference
+from comments.models import Comment
+from comments.serializers import CommentSerializer
+from core.decorators import with_fields, with_dependency
 
 
 class ListViewSet(viewset(List, ListSerializer)):
-	@with_reference(Board)
-	@check_fields(['index', 'title'])
+	@with_fields(['title'], ['index'])
+	@with_dependency(Board)
 	def create(self, request):
-		List.objects.create(
-			index=request.index,
-			title=request.title,
-			of_board=request.board,
-		)
-		return self.created()
+		return self.created(create_list(request))
 
 
 class CardViewSet(viewset(Card, CardSerializer)):
-	@with_reference(List)
-	@check_fields(['index', 'text'], ['expires_at'])
+	@with_fields(['text'], ['index', 'expires_at'])
+	@with_dependency(List)
 	def create(self, request):
-		Card.objects.create(
-			index=request.index,
-			text=request.text,
-			expires_at=request.expires_at,
-			of_list=request.list,
-		)
-		return self.created()
+		return self.created(create_card(request))
+
+	@action(['get'], True)
+	def comments(self, request, **kwargs):
+		item = self.get_object()
+		comments = Comment.alive(target=item)
+		data = CommentSerializer(comments, many=True).data
+		return self.send(data)

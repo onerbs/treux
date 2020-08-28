@@ -1,23 +1,35 @@
-from django.contrib.auth import get_user_model
-from xu import string
+from rest_framework.decorators import action
 
-from base import viewset
-from core.decorators import check_fields
-from core.postman import send_confirmation_email
+from base.views import viewset
+from cards.models import Card
+from core.decorators import with_params, with_dependency
 from users.models import User
 from users.serializers import UserSerializer
 
 
-class UserViewSet(viewset(User, UserSerializer, [])):
-	@check_fields(['email', 'password', 'first_name'], ['last_name'])
-	def create(self, request):
-		user_model = get_user_model()
-		user = user_model.objects.create_user(
-			string(6, prefix='user_0x').digit.extend('abcdef'),
-			request.email,
-			request.password,
-			first_name=request.first_name,
-			last_name=request.last_name,
-		)
-		send_confirmation_email(user)
-		return self.created()
+class UserViewSet(viewset(User, UserSerializer)):
+	lookup_field = 'username'
+
+	@action(['get'], True)
+	@with_params(['uuid'])
+	def confirm(self, request, **kwargs):
+		try:
+			user = User.objects.get(uuid=request.uuid)
+			if not user.is_confirmed:
+				user.is_confirmed = True
+				user.rotate_uuid()
+				user.save()
+				return self.item('confirmed')
+			return self.accept('Already confirmed')
+		except User.DoesNotExist:
+			return self.not_found()
+
+	@action(['post'], True)
+	@with_dependency(Card)
+	def assign(self, request, **kwargs):
+		user, card = request.user, request.card
+		if user.assigned_cards.filter(uuid=card.uuid).exists():
+			return self.fail('The card is already assigned')
+		user.assigned_cards.add(card)
+		user.save()
+		return card.item('assigned to user')

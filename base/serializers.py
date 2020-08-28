@@ -9,8 +9,10 @@ def serializer(model, fields: list):
 	"""
 	post, put = [], []
 	for f in fields:
-		if '!' in f:
-			post.append(f[1:])
+		if f.endswith(':'):
+			post.append(f[:-1])
+		elif f.startswith(':'):
+			put.append(f[1:])
 		else:
 			post.append(f)
 			put.append(f)

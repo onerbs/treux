@@ -1,7 +1,6 @@
 from treux.settings import SITE_URL
 
-# api_root = 'api/v1/'
-api_root = ''
+api_root = 'api/v1/'
 
 
 def api_path(path: str) -> str:
@@ -16,7 +15,7 @@ def api_url(path: str) -> str:
 	return url
 
 
-def api_urls(items: list) -> list:
+def api_patterns(items: list) -> list:
 	"""Register the urls under {api_root}.
 
 	:param items: The items to register.

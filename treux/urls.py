@@ -5,7 +5,7 @@ from users.views import UserViewSet
 from boards.views import BoardViewSet
 from cards.views import ListViewSet, CardViewSet
 from comments.views import CommentViewSet
-from core.api import api_urls
+from core.api import api_patterns
 
 router = SimpleRouter()
 router.register('teams', TeamViewSet)
@@ -15,4 +15,4 @@ router.register('lists', ListViewSet)
 router.register('cards', CardViewSet)
 router.register('comments', CommentViewSet)
 
-urlpatterns = api_urls([router.urls, 'core.urls'])
+urlpatterns = api_patterns([router.urls, 'core.urls'])

@@ -1,46 +1,64 @@
 from rest_framework.response import Response
-from rest_framework.status import *
 
-
-def respond(message: str, status_code: int, headers=None, exception=False):
-	return Response({
-		'message': message
-	}, status_code, headers=headers, exception=exception)
-
-
-def success(message='Ok', code=HTTP_200_OK, headers=None):
-	return respond(message, code, headers)
-
-
-def error(message='Error', code=HTTP_400_BAD_REQUEST, headers=None):
-	return respond(message, code, headers, True)
-
-
-def staff_only():
-	return error(f'Must be staff to perform this action.', HTTP_403_FORBIDDEN)
+from core.api.status import *
 
 
 class WithResponses:
 	@staticmethod
-	def kind() -> str:
-		return 'Item'
+	def send(*args, **kwargs) -> Response:
+		return Response(*args, **kwargs)
 
-	def created(self):
-		return success(f'{self.kind()} created.', HTTP_201_CREATED)
+	def respond(
+		self, msg: str = 'Empty', tag: str = 'detail',
+		*args, status=None, **kwargs
+	):
+		return self.send({tag: msg}, *args, status=status, **kwargs)
 
-	def updated(self):
-		return success(f'{self.kind()} updated.', HTTP_200_OK)
+	def item(self, action: str, ref=True, status=None, strict=False) -> Response:
+		stat = _boolean(ref)
+		msg = f'{self.__class__.__name__} {stat + action}'
+		if not strict and 'not' in stat:
+			status = FAILURE
+		return self.respond(msg, status=status)
 
-	def deleted(self, *, hard=False):
-		message = f'{self.kind()} {"destroyed" if hard else "deleted"}.'
-		return success(message, HTTP_204_NO_CONTENT)
+	def succeed(self, msg: str = None, status: int = SUCCESS) -> Response:
+		return self.respond(msg, status=status)
 
-	def undeleted(self):
-		return success(f'{self.kind()} undeleted.', HTTP_200_OK)
+	def fail(self, msg: str = None, status: int = FAILURE) -> Response:
+		return self.respond(msg, 'error', status=status)
 
-	def not_found(self):
-		return error(f'{self.kind()} not found.', HTTP_404_NOT_FOUND)
+	def accept(self, msg: str = None) -> Response:
+		return self.succeed(msg, ACCEPTED)
 
-	@staticmethod
-	def broken_reference(item: str):
-		return error(f'Broken reference to {item}.')
+	def reject(self, msg: str = None) -> Response:
+		return self.fail(msg, REJECTED)
+
+	def forbidden(self, superuser=False) -> Response:
+		level = 'manager' if superuser else 'staff'
+		msg = f"Must be {level} to perform this action."
+		return self.fail(msg, FORBIDDEN)
+
+	def created(self, ref=True, fields=None) -> Response:
+		if not ref:
+			return self.item('created', False)
+		if not fields:
+			fields = ['uuid']  # !! uuid.
+		data = {f: getattr(ref, f) for f in fields}
+		return self.send(data, status=CREATED)
+
+	def updated(self, ref=True) -> Response:
+		return self.item('updated', ref, UPDATED)
+
+	def deleted(self, ref=True, /, hard=False) -> Response:
+		action = 'destroyed' if hard else 'deleted'
+		return self.item(action, ref, DELETED)
+
+	def undeleted(self, ref=True) -> Response:
+		return self.item('undeleted', ref, UNDELETED)
+
+	def not_found(self) -> Response:
+		return self.item('found', False, NOT_FOUND, True)
+
+
+def _boolean(ref) -> str:
+	return 'not ' if ref in [None, False] else ''

@@ -12,19 +12,14 @@ class BaseModel(models.Model, WithResponses):
 	deleted_at = models.DateTimeField(null=True, default=None)
 	exports = ['uuid', 'created_at', 'updated_at']
 
-	@property
-	def kind(self) -> str:
-		"""The readable name of the resource."""
-		return self.__class__.__name__
-
 	def rotate_uuid(self):
 		"""Assign a new uuid to this resource."""
 		self.uuid = uuid4()
 
 	@classmethod
-	def get(cls, **kwargs):
+	def find(cls, **kwargs):
 		"""Get a resource by identifier key."""
-		return cls.objects.filter(deleted_at=None).get(**kwargs)
+		return cls.alive().get(**kwargs)
 
 	@classmethod
 	def alive(cls, **kwargs):

@@ -7,7 +7,10 @@ from django.utils.deconstruct import deconstructible
 @deconstructible
 class UsernameValidator(RegexValidator):
 	flags = ASCII
-	message = \
-		'This value may contain only English letters, ' \
-		'numbers, and [._-] characters.'
-	regex = r'^[a-zA-Z0-9\._-]+$'
+	message = f'''
+	This value cannot contains spaces nor uppercase letters,
+	may contains alphanumeric, underscore or hyphen characters,
+	must start with a letter or underscore and end with
+	either a digit, a letter or underscore.
+	'''.strip().replace('\n\t', ' ')
+	regex = r'^[a-z_]([a-z\d_-]*[a-z\d_])?$'

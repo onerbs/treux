@@ -4,12 +4,12 @@ from rest_framework.viewsets import GenericViewSet, mixins
 
 from core.decorators import with_fields
 from core.responses import WithResponses
-from users.permissions import Default
+from users.permissions import DefaultPermission
 
 
 def viewset(_model, serializer, permissions: list = None):
 	if permissions is None:
-		permissions = [Default]
+		permissions = [DefaultPermission]
 
 	class _ViewSet(BaseViewSet):
 		queryset = _model.objects.all()

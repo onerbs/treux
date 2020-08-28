@@ -1,6 +1,6 @@
 from boards.actions import create_board
 from cards.actions import create_list, create_card
-from core.responses import *
+from core.api.status import SUCCESS
 from core.api.test_cases import WithUser
 
 

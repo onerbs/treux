@@ -1,6 +1,8 @@
 from django.urls import path, include
 
+from core.auth import basic
+
 urlpatterns = [
-	path('', include('core.auth.default')),
-	path('token/', include('core.auth.token')),
+	path('', basic.AuthView.as_view(), name='auth'),
+	path('jwt/', include('core.auth.jwt')),
 ]

@@ -1,5 +1,5 @@
 from core.api.status import *
-from core.api.test_cases import WithShortcuts, WithUser
+from core.api.testing import WithShortcuts, WithUser
 from faker import Faker
 fake = Faker(['es_MX'])
 
